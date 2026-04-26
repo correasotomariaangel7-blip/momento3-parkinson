@@ -47,9 +47,11 @@ RANGOS_FEATURES = [
 
 ETIQUETAS = {0: 'Leve', 1: 'Moderado', 2: 'Severo'}
 
+import os
+
 @st.cache_data
 def cargar_datos():
-    dataset = np.loadtxt('parkinsons\\telemonitoring\\parkinsons_updrs.data', 
+    dataset = np.loadtxt('parkinsons/telemonitoring/parkinsons_updrs.data', 
                          delimiter=',', skiprows=1)
     return dataset
 

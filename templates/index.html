@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificación de Parkinson - Red Neuronal vs Regresión Logística</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 Clasificación de Severidad de Parkinson</h1>
+            <p class="subtitle">Comparación de Modelos: Red Neuronal vs Regresión Logística</p>
+        </header>
+
+        <main>
+            <!-- Sección de información -->
+            <section class="info-section">
+                <h2>📊 Sobre el Dataset</h2>
+                <p>Este sistema utiliza 16 características de voz para predecir el nivel de severidad de Parkinson:</p>
+                <ul class="features-list">
+                    <li><strong>Jitter (%):</strong> Variación en la frecuencia fundamental</li>
+                    <li><strong>Shimmer:</strong> Variación en la amplitud</li>
+                    <li><strong>NHR:</strong> Ratio de ruido a componentes tonales</li>
+                    <li><strong>HNR:</strong> Ratio armónico a ruido</li>
+                    <li><strong>RPDE:</strong> Complejidad dinámica no lineal</li>
+                    <li><strong>DFA:</strong> Análisis de fluctuación detrendada</li>
+                    <li><strong>PPE:</strong> Entropía de perturbación de tono</li>
+                </ul>
+            </section>
+
+            <!-- Sección de entrada de datos -->
+            <section class="input-section">
+                <h2>📝 Ingrese los datos del paciente</h2>
+                <p class="hint">Ingrese los 16 valores de características de voz separados por comas:</p>
+                
+                <div class="input-group">
+                    <textarea id="datosPaciente" rows="4" placeholder="Ejemplo: 0.00662,3.38e-005,0.00401,0.00317,0.01204,0.02565,0.23,0.01438,0.01309,0.01662,0.04314,0.01429,21.64,0.41888,0.54842,0.16006"></textarea>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="entrenarYPredecir('red_neuronal')" class="btn btn-neural">
+                        🔵 Red Neuronal
+                    </button>
+                    <button onclick="entrenarYPredecir('regresion_logistica')" class="btn btn-logistic">
+                        🟢 Regresión Logística
+                    </button>
+                </div>
+            </section>
+
+            <!-- Sección de resultados -->
+            <section class="result-section" id="resultSection" style="display: none;">
+                <h2>📋 Resultados</h2>
+                <div class="result-card">
+                    <div class="result-item">
+                        <span class="label">Modelo:</span>
+                        <span class="value" id="modeloUsado">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Precisión:</span>
+                        <span class="value" id="accuracy">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Severidad:</span>
+                        <span class="value severity" id="severidad">-</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de comparación -->
+            <section class="comparison-section">
+                <h2>🔄 Comparación de Modelos</h2>
+                <button onclick="compararModelos()" class="btn btn-compare">
+                    ⚖️ Comparar Ambos Modelos
+                </button>
+                <div id="comparisonResults" style="display: none;">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Modelo</th>
+                                <th>Precisión</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Red Neuronal</td>
+                                <td id="accuracyNeural">-</td>
+                            </tr>
+                            <tr>
+                                <td>Regresión Logística</td>
+                                <td id="accuracyLogistic">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>🎓 Proyecto de Analítica de Datos - Momento 3</p>
+        </footer>
+    </div>
+
+    <script>
+        async function entrenarYPredecir(modelo) {
+            const datos = document.getElementById('datosPaciente').value;
+            
+            if (!datos.trim()) {
+                alert('Por favor ingrese los datos del paciente');
+                return;
+            }
+
+            const datosArray = datos.split(',').map(Number);
+            
+            if (datosArray.some(isNaN)) {
+                alert('Por favor ingrese solo valores numéricos separados por comas');
+                return;
+            }
+
+            if (datosArray.length !== 16) {
+                alert(`Se requieren 16 características, ingresó ${datosArray.length}`);
+                return;
+            }
+
+            try {
+                // Entrenar modelo
+                const responseEntrenar = await fetch('/entrenar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ modelo: modelo })
+                });
+                
+                const resultEntrenar = await responseEntrenar.json();
+                
+                if (!resultEntrenar.success) {
+                    alert('Error al entrenar: ' + resultEntrenar.error);
+                    return;
+                }
+
+                // Realizar predicción
+                const responsePredecir = await fetch('/predecir', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ modelo: modelo, datos: datosArray })
+                });
+                
+                const resultPredecir = await responsePredecir.json();
+                
+                if (resultPredecir.success) {
+                    // Mostrar resultados
+                    document.getElementById('resultSection').style.display = 'block';
+                    document.getElementById('modeloUsado').textContent = 
+                        modelo === 'red_neuronal' ? 'Red Neuronal' : 'Regresión Logística';
+                    document.getElementById('accuracy').textContent = 
+                        (resultEntrenar.accuracy * 100).toFixed(2) + '%';
+                    document.getElementById('severidad').textContent = resultPredecir.resultado;
+                    
+                    // Color según severidad
+                    const severidad = resultPredecir.resultado;
+                    const severidadEl = document.getElementById('severidad');
+                    severidadEl.className = 'value severity severity-' + severidad.toLowerCase();
+                } else {
+                    alert('Error al predecir: ' + resultPredecir.error);
+                }
+            } catch (error) {
+                alert('Error de conexión: ' + error.message);
+            }
+        }
+
+        async function compararModelos() {
+            try {
+                // Entrenar ambos modelos
+                const response = await fetch('/entrenar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ modelo: 'red_neuronal' })
+                });
+                const resultNeural = await response.json();
+                
+                const response2 = await fetch('/entrenar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ modelo: 'regresion_logistica' })
+                });
+                const resultLogistic = await response2.json();
+                
+                // Mostrar comparación
+                document.getElementById('comparisonResults').style.display = 'block';
+                document.getElementById('accuracyNeural').textContent = 
+                    (resultNeural.accuracy * 100).toFixed(2) + '%';
+                document.getElementById('accuracyLogistic').textContent = 
+                    (resultLogistic.accuracy * 100).toFixed(2) + '%';
+            } catch (error) {
+                alert('Error al comparar: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

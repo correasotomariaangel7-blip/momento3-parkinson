@@ -49,7 +49,7 @@ ETIQUETAS = {0: 'Leve', 1: 'Moderado', 2: 'Severo'}
 
 @st.cache_data
 def cargar_datos():
-    dataset = np.loadtxt('parkinsons\\telemonitoring\\parkinsons_updrs.data', 
+    dataset = np.loadtxt('parkinsons/telemonitoring/parkinsons_updrs.data', 
                          delimiter=',', skiprows=1)
     return dataset
 
@@ -237,7 +237,7 @@ def main():
                     etiquetas_pred = np.array([ETIQUETAS[p] for p in predicciones])
                 
                 dataset_combinado = np.vstack((dataset_original, datos_nuevo))
-                with open('parkinsons\\telemonitoring\\parkinsons_updrs.data', 'a') as f:
+                with open('parkinsons/telemonitoring/parkinsons_updrs.data', 'a') as f:
                     np.savetxt(f, datos_nuevo, delimiter=',')
                 
                 st.success(f"Se cargaron **{len(features_nuevo)}** registros exitosamente.")

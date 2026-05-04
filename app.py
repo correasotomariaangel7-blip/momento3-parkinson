@@ -350,7 +350,7 @@ def main():
         <div style='text-align:center;padding:1rem 0 0.5rem'>
             <div style='font-size:2.5rem'>🧠</div>
             <div style='font-family:Syne,sans-serif;font-size:1.1rem;font-weight:800;color:#e2e8f0;margin-top:0.3rem'>NeuroScan</div>
-            <div style='font-family:"DM Mono",monospace;font-size:0.68rem;color:#00d4ff;letter-spacing:0.2em'>PARKINSON · AI</div>
+            <div style='font-family:"DM Mono",monospace;font-size:0.68rem;color:#00d4ff;letter-spacing:0.2em'>PARKINSON</div>
         </div>""", unsafe_allow_html=True)
         st.markdown("---")
 
@@ -391,7 +391,7 @@ def main():
     # ── HERO ───────────────────────────────────────────────────────────────────
     st.markdown("""
     <div class="hero">
-        <div class="hero-tag">🔬 Sistema de análisis clínico · IA</div>
+        <div class="hero-tag">🔬 Sistema de análisis clínico </div>
         <h1>Clasificación de Severidad<br>de Parkinson</h1>
         <p>Análisis de biomarcadores acústicos de voz mediante redes neuronales
         y regresión logística para estimación del estadio UPDRS.</p>
